@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroCare</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Add this CSS to center the button container */
+        .button-container {
+            display: flex;
+            justify-content: center; /* Center buttons horizontally */
+            align-items: center; /* Center buttons vertically */
+            margin-bottom: 20px; /* Space below the buttons */
+            gap: 10px; /* Space between buttons */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='mainlogo.jpg') }}" alt="AgroCare">
+            <h1>AgroCare</h1>
+        </div>
+        <div class="title">
+            <h2>AI Solutions For Modern Agriculture</h2>
+        </div>
+        <div class="language-switcher">
+            <button id="logoutButton" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
+        </div>
+    </header>
+    <main>
+        <div class="button-container">
+            <button id="letsTalkButton" onclick="window.location.href='{{ url_for('speech') }}'">Let's Talk</button>
+            <button id="refresh-button" onclick="location.reload();">Refresh</button>
+        </div>
+        <div class="question-input">
+            <input type="text" id="questionInput" placeholder="Type your question..." onfocus="clearExamples()" oninput="clearExamples()">
+            <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="uploadImage();">
+            <button class="upload-btn" onclick="document.getElementById('imageInput').click();">
+                📷
+            </button>
+            <button class="submit-btn" onclick="submitQuestion()">
+                <img src="{{ url_for('static', filename='send2.jpg') }}" alt="Send">
+            </button>
+        </div>
+        <div class="examples" id="examples">
+            <p>Few examples to ask!</p>
+            <ul>
+                <li onclick="insertExample('How to improve soil condition?')">How to improve soil condition?</li>
+                <li onclick="insertExample('What is the best time to plant okra in North India?')">What is the best time to plant okra in North India?</li>
+                <li onclick="insertExample('What are the most effective methods for pest control on cabbage?')">What are the most effective methods for pest control on cabbage?</li>
+                <li onclick="insertExample('What are the most effective methods for pest control on mango tree?')">What are the most effective methods for pest control on mango tree?</li>
+            </ul>
+        </div>
+        <div class="uploaded-image" id="uploadedImage" style="display: none;">
+            <img id="imagePreview" src="" alt="Uploaded Image" style="max-width: 100%; margin: 20px 0;">
+        </div>
+        <div class="bot-response" id="botResponse"></div>
+    </main>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        function clearExamples() {
+            document.getElementById('examples').style.display = 'none';
+        }
+
+        function insertExample(exampleText) {
+            document.getElementById('questionInput').value = exampleText;
+            clearExamples();
+        }
+
+        function submitQuestion() {
+            var question = document.getElementById('questionInput').value;
+            if (!question) return;
+            
+            $.ajax({
+                url: '/ask',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ question: question }),
+                success: function(response) {
+                    var answer = response.answer;
+                    console.log('Answer:', answer);
+                    document.getElementById('botResponse').innerHTML = `<div class="completion">${answer}</div>`;
+                },
+                error: function(error) {
+                    console.error('Error:', error);
+                    alert('Error occurred. Please try again later.');
+                }
+            });
+        }
+
+        function uploadImage() {
+            var imageInput = document.getElementById('imageInput').files[0];
+            var formData = new FormData();
+            formData.append('file', imageInput);
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('uploadedImage').style.display = 'block';
+                clearExamples();
+            };
+            reader.readAsDataURL(imageInput);
+
+            $.ajax({
+                url: '/predict',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    var prediction = response.prediction;
+                    console.log('Prediction:', prediction);
+                    document.getElementById('botResponse').innerHTML = `<div class="completion">Prediction: ${prediction}</div>`;
+                },
+                error: function(error) {
+                    console.error('Error:', error);
+                    alert('Error occurred while uploading the image. Please try again later.');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

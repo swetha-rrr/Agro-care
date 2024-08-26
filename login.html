@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .flash-message {
+            color: red; /* Set text color to red */
+            margin-top: 10px; /* Add some space above the message */
+            font-weight: bold; /* Make the text bold */
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-form">
+            <h2>Login</h2>
+            <p>Doesn't have an account yet? <a href="{{ url_for('signup') }}">Sign Up</a></p>
+            
+            <form action="{{ url_for('login') }}" method="post">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="you@example.com" required>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter 6 characters or more" required>
+                <div class="options">
+                    <div>
+                        <input type="checkbox" id="rememberMe">
+                        <label for="rememberMe">Remember me</label>
+                    </div>
+                    <!-- Removed the Forgot Password option -->
+                </div>
+                <button type="submit" class="login-btn">LOGIN</button>
+            </form>
+
+            <!-- Flash Messages moved below the form -->
+            {% with messages = get_flashed_messages(with_categories=True) %}
+                {% if messages %}
+                    <div class="flash-message">
+                    {% for category, message in messages %}
+                        {{ message }}<br>
+                    {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+        <div class="illustration">
+            <img src="{{ url_for('static', filename='sg logo.png') }}" alt="Illustration">
+        </div>
+    </div>
+</body>
+</html>
